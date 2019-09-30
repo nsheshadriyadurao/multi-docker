@@ -1,0 +1,25 @@
+sudo : required
+services:
+        - docker
+
+before_install:
+        - docker build -t sheshadrin/react-test -f ./client/Docker.dev ./client 
+
+
+script:
+       - docker run sheshadrin/react-test npm test -- -- coverage
+
+after_success:
+        - docker build -t sheshadrin/multi-client ./client
+        - docker build -t sheshadrin/multi-nginx ./nginx
+        - docker build -t sheshadrin/multi-server ./server
+        - docker build -t sheshadrin/multi-worker ./worker
+        # Log in to the Docker CLI
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+          
+        # Pull images to docker hub
+        - docker push sheshadrin/multi-client
+        - docker push sheshadrin/multi-nginx
+        - docker push sheshadrin/multi-server
+        - docker push sheshadrin/multi-worker
+
